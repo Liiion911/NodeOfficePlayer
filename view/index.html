@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TEST PROJECT">
+    <meta name="author" content="">
+
+    <title>Node TEST Player</title>
+  </head>
+
+  <body>
+    <h2>Плеер</h2>
+      <div id="main">
+        Загрузка...
+      </div>
+    <script src="/jquery-2.1.0.min.js"> </script>
+    <script src="/underscore.min.js"> </script>
+    <script src="/backbone.min.js"> </script>
+    <script type="text/javascript"> 
+           $(function() {
+            window.App = {
+              models: {},
+              collections: {},
+              objects: {},
+              views: {},
+            };
+
+            App.models.Track = Backbone.Model.extend({
+              defaults: {
+                title: '-',
+                album: '-',
+                year: 0,
+                duration: 0,
+              },
+            });
+
+            App.collections.Tracks = Backbone.Collection.extend({
+              model: App.models.Track,
+              url: '/list',
+            });
+
+            App.objects.tracks = new App.collections.Tracks();
+
+            App.views.TrackItem = Backbone.View.extend({
+              tagName: 'div',
+
+              events: {
+                'click': 'playTrack'
+              },
+
+              initialize: function() {
+                this.listenTo(this.model, 'change', this.render);
+              },
+
+              playTrack: function() {
+                $.get('/play/' + this.model.collection.indexOf(this.model));
+              },
+
+              render: function() {
+                this.$el.html('<div style="cursor: pointer;"><b>' + this.model.get('title') + '</b> - <span>' + this.model.get('album') + '</span> - <span>' + this.model.get('year') + '</span> - <span>' + this.model.get('duration') + '</span></div>');
+                return this;
+              },
+            });
+
+
+            App.views.TrackList = Backbone.View.extend({
+              el: $('#main'),
+              initialize: function(options) {
+                this.collection = options.collection;
+                this.listenTo(this.collection, 'change add reset remove', this.render);
+              },
+
+              render: function() {
+                this.$el.html(' ');
+                this.collection.each(function(model) {
+                  var view = new App.views.TrackItem({
+                    model: model
+                  });
+                  this.$el.append(view.render().el);
+                }, this);
+                return this;
+              }
+            });
+
+            new App.views.TrackList({
+              collection: App.objects.tracks
+            });
+            App.objects.tracks.fetch();
+
+          });</script>
+  </body>
+</html>
