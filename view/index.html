@@ -7,12 +7,82 @@
     <meta name="author" content="">
 
     <title>Node TEST Player</title>
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <style type="text/css">
+      html, body {
+        background-color: white;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        cursor: default;
+      }
+      
+      .wrapper {
+        width: 1024px;
+        height: 100%;
+        margin: 0 auto;
+        background-color: #D2D1D0;
+        border-left: 1px solid #BBB;
+        border-right: 1px solid #BBB;
+      }
+      
+      h1, h2, h3, h4, h5{
+        margin-top: 0px;
+        padding-left: 20px;
+      }
+      
+      .playlist{
+        min-height: 120px;
+        width: 724px;
+        float: left;
+        padding-left: 10px;
+      }
+      
+      .track{
+        height: 22px;
+        line-height: 24px;
+        padding-left: 10px;
+        border-bottom: 1px solid #BBB;
+      }
+
+      .track:last-child{
+        border-bottom: none;
+      }
+      
+      .track .fa{
+        cursor: pointer;
+      }
+      
+      .track.playing{
+        background-color: #BBB;
+      }
+       
+      .current-track-info{
+        width: 300px;
+        min-height: 200px;
+        float: left;
+      }
+
+    </style>
+    
+    <script id="track-item" type="text/template">
+      <i class="fa fa-play"></i> 
+      <b><%= title %></b> - 
+      <span><%= album %></span> - 
+      <span><%= year %></span> - 
+      <span><%= duration %></span>
+    </script>
   </head>
 
   <body>
-    <h2>Плеер</h2>
-      <div id="main">
-        Загрузка...
+      <div class="wrapper">
+        <h2>Плеер</h2>
+        <div class="playlist">
+          Загрузка...
+        </div>
+        <div class="current-track-info">
+          <img src>
+        </div>
       </div>
     <script src="/jquery-2.1.0.min.js"> </script>
     <script src="/underscore.min.js"> </script>
@@ -44,9 +114,11 @@
 
             App.views.TrackItem = Backbone.View.extend({
               tagName: 'div',
-
+              className: 'track',
+              template: $('#track-item').html(),
+              
               events: {
-                'click': 'playTrack'
+                'click .fa-play': 'playTrack'
               },
 
               initialize: function() {
@@ -58,14 +130,13 @@
               },
 
               render: function() {
-                this.$el.html('<div style="cursor: pointer;"><b>' + this.model.get('title') + '</b> - <span>' + this.model.get('album') + '</span> - <span>' + this.model.get('year') + '</span> - <span>' + this.model.get('duration') + '</span></div>');
+                this.$el.html(_.template(this.template, this.model.toJSON()));
                 return this;
               },
             });
 
-
             App.views.TrackList = Backbone.View.extend({
-              el: $('#main'),
+              el: $('.playlist'),
               initialize: function(options) {
                 this.collection = options.collection;
                 this.listenTo(this.collection, 'change add reset remove', this.render);

@@ -1,6 +1,5 @@
 var mm = require('musicmetadata');
-var ID3 = require('id3');
-var player = require('./player');
+//var ID3 = require('id3');
 var fs = require('fs');
 var async = require('async');
 var express = require('express');
@@ -46,41 +45,40 @@ fs.readdir(__dirname + '/musics', function(err, files) {
 });
 
 app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/musics'));
 
 app.get('/', function(req, res) {
 	res.sendfile(__dirname + '/view/index.html');
-});
-
-app.get('/play/:index', function(req, res) {
-	var index = parseInt(req.params.index);
-	if (index >= 0 && index < result.length) {
-		if (music) {
-			music.stop();
-		}
-		music = new player(__dirname + '/musics/' + result[req.params.index].file);
-	}
-	res.end();
-});
-
-app.get('/pause', function(req, res) {
-	music.pause();
-	res.end();
-});
-
-app.get('/resume', function(req, res) {
-	music.resume();
-	res.end();
-});
-
-app.get('/stop', function(req, res) {
-	music.stop();
-	res.end();
 });
 
 app.get('/list', function(req, res) {
 	res.json(result);
 });
 
+app.get('/status', function(req, res) {
+
+	var statusModel = {
+		owner: false,
+		volume: 0.5,
+		paused: false,
+		isPlaying: false,
+	};
+
+	if (req.connection.remoteAddress == "127.0.0.1" || req.connection.remoteAddress == "localhost") {
+		statusModel.owner = true;
+	}
+
+	if (music) {
+		statusModel.isPlaying = true,
+		statusModel.trackId = _.indexOf(result, _.findWhere(result, {
+			file: music.file
+		}));
+		statusModel.time = music.time;
+	}
+	res.json(statusModel)
+});
+
+/*
 app.get('/info/:index', function(req, res) {
 	var index = parseInt(req.params.index);
 	if (index >= 0 && index < result.length) {
@@ -97,7 +95,8 @@ app.get('/info/:index', function(req, res) {
 		res.end();
 	}
 });
- 
+ */
+
 app.get('/picture/:index', function(req, res) {
 	var index = parseInt(req.params.index);
 	if (index >= 0 && index < result.length && result[req.params.index].picture && result[req.params.index].picture.length > 0 && result[req.params.index].picture[0].data) {
