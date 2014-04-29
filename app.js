@@ -13,7 +13,7 @@ var result = []; //metadata array
 
 var interator = function(file, callback) {
 
-	var stream = fs.createReadStream(__dirname + '/musics/' + file);
+	var stream = fs.createReadStream(__dirname + '/public/musics/' + file);
 	var parser = new mm(stream);
 
 	//listen for the metadata event
@@ -33,7 +33,7 @@ var interator = function(file, callback) {
 
 };
 
-fs.readdir(__dirname + '/musics', function(err, files) {
+fs.readdir(__dirname + '/public/musics', function(err, files) {
 	if (err) {
 		throw err;
 	}
@@ -45,7 +45,6 @@ fs.readdir(__dirname + '/musics', function(err, files) {
 });
 
 app.use(express.static(__dirname + '/public'));
-app.use(express.static(__dirname + '/musics'));
 
 app.get('/', function(req, res) {
 	res.sendfile(__dirname + '/view/index.html');
@@ -62,6 +61,8 @@ app.get('/status', function(req, res) {
 		volume: 0.5,
 		paused: false,
 		isPlaying: false,
+		trackId: -1,
+		time: 30,
 	};
 
 	if (req.connection.remoteAddress == "127.0.0.1" || req.connection.remoteAddress == "localhost") {

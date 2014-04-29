@@ -7,7 +7,10 @@
     <meta name="author" content="">
 
     <title>Node TEST Player</title>
-    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
+    <link  href="/player/mediaelementplayer.min.css" rel="Stylesheet" />
+    <link  href="/player/mejs-skins.css" rel="Stylesheet" />
     <style type="text/css">
       html, body {
         background-color: white;
@@ -33,7 +36,7 @@
       
       .playlist{
         min-height: 120px;
-        width: 724px;
+        width: 714px;
         float: left;
         padding-left: 10px;
       }
@@ -58,11 +61,44 @@
       }
        
       .current-track-info{
-        width: 300px;
+        width: 280px;
         min-height: 200px;
         float: left;
       }
+      
+      .current-track-info{
+        padding: 10px;
+      }
+      
+      .album-icon{
+        margin: 0 auto;
+        text-align: center;
+      }
+      
+      .album-icon img{
+        min-width: 64px;
+        min-height: 64px;
+        max-width: 200px;
+        max-height: 200px;
+        margin: 0 auto;
+        border-radius: 5px;
+        border: 5px solid #BBB;
+      }
+      
+      .player{
+        height: 50px;
+        padding: 10px;
+      }
 
+      /* */
+      /* HTML 5 AUDIO PLAYER CSS */
+      /* */
+     
+      /* */
+      /* --- */
+      /* */
+      
+      
     </style>
     
     <script id="track-item" type="text/template">
@@ -72,93 +108,169 @@
       <span><%= year %></span> - 
       <span><%= duration %></span>
     </script>
+    
+    <script id="current-track-info" type="text/template">
+      <div class="album-icon">
+        <% if(picture && picture[0]){ %>
+          <img src="/picture/<%= trackId %>" alt="<% if(album){ %><%= album %><% } %>" />
+        <% } else { %>
+          <img src="/images/no_album.jpg" alt="<% if(album){ %><%= album %><% } %>" />
+        <% } %>
+      </div>
+      <div>Название: <%= title %></div>
+      <div>Альбом: <%= album %></div>
+      <div>Год: <%= year %></div>
+      <div>Продолжительность: <%= duration %></div>
+    </script>
+    
+    
   </head>
 
   <body>
       <div class="wrapper">
         <h2>Плеер</h2>
+        <div class="player">
+          <center>
+            <audio id="player" controls="controls" src="/musics/01.Daisy.mp3" type="audio/mp3"></audio>
+          </center>
+        </div>
         <div class="playlist">
-          Загрузка...
+          Загрузка плейлиста...
         </div>
         <div class="current-track-info">
-          <img src>
+          
         </div>
       </div>
-    <script src="/jquery-2.1.0.min.js"> </script>
-    <script src="/underscore.min.js"> </script>
-    <script src="/backbone.min.js"> </script>
+    <script src="/js/jquery-2.1.0.min.js"> </script>
+    <script src="/player/mediaelement-and-player.min.js"></script>
+    <script src="/js/underscore.min.js"> </script>
+    <script src="/js/backbone.min.js"> </script>
     <script type="text/javascript"> 
-           $(function() {
-            window.App = {
-              models: {},
-              collections: {},
-              objects: {},
-              views: {},
-            };
+      $(function() {
 
-            App.models.Track = Backbone.Model.extend({
-              defaults: {
-                title: '-',
-                album: '-',
-                year: 0,
-                duration: 0,
-              },
-            });
+      window.App = {
+        models: {},
+        collections: {},
+        objects: {},
+        views: {},
+      };
 
-            App.collections.Tracks = Backbone.Collection.extend({
-              model: App.models.Track,
-              url: '/list',
-            });
+       App.models.Track = Backbone.Model.extend({
+         defaults: {
+           title: '-',
+           album: '-',
+           year: 0,
+           duration: 0,
+         },
+       });
 
-            App.objects.tracks = new App.collections.Tracks();
+       App.models.Status = Backbone.Model.extend({
+         url: '/status',
+         defaults: {
+           owner: false,
+           volume: 0.5,
+           paused: false,
+           isPlaying: false,
+           trackId: -1,
+           time: 0,
+         },
+       });
 
-            App.views.TrackItem = Backbone.View.extend({
-              tagName: 'div',
-              className: 'track',
-              template: $('#track-item').html(),
-              
-              events: {
-                'click .fa-play': 'playTrack'
-              },
+       App.collections.Tracks = Backbone.Collection.extend({
+         model: App.models.Track,
+         url: '/list',
+       });
 
-              initialize: function() {
-                this.listenTo(this.model, 'change', this.render);
-              },
+       App.objects.tracks = new App.collections.Tracks();
+       App.objects.status = new App.models.Status();
 
-              playTrack: function() {
-                $.get('/play/' + this.model.collection.indexOf(this.model));
-              },
+       App.views.TrackItem = Backbone.View.extend({
+         tagName: 'div',
+         className: 'track',
+         template: $('#track-item').html(),
 
-              render: function() {
-                this.$el.html(_.template(this.template, this.model.toJSON()));
-                return this;
-              },
-            });
+         events: {
+           'click .fa-play': 'playTrack'
+         },
 
-            App.views.TrackList = Backbone.View.extend({
-              el: $('.playlist'),
-              initialize: function(options) {
-                this.collection = options.collection;
-                this.listenTo(this.collection, 'change add reset remove', this.render);
-              },
+         initialize: function() {
+           this.listenTo(this.model, 'change', this.render);
+         },
 
-              render: function() {
-                this.$el.html(' ');
-                this.collection.each(function(model) {
-                  var view = new App.views.TrackItem({
-                    model: model
-                  });
-                  this.$el.append(view.render().el);
-                }, this);
-                return this;
-              }
-            });
+         playTrack: function() {
+           $.get('/play/' + this.model.collection.indexOf(this.model));
+         },
 
-            new App.views.TrackList({
-              collection: App.objects.tracks
-            });
-            App.objects.tracks.fetch();
+         render: function() {
+           this.$el.html(_.template(this.template, this.model.toJSON()));
+           return this;
+         },
+       });
 
-          });</script>
+       App.views.TrackList = Backbone.View.extend({
+         el: $('.playlist'),
+         initialize: function(options) {
+           this.collection = options.collection;
+           this.listenTo(this.collection, 'change add reset remove', this.render);
+         },
+
+         render: function() {
+           this.$el.html(' ');
+           this.collection.each(function(model) {
+             var view = new App.views.TrackItem({
+               model: model
+             });
+             this.$el.append(view.render().el);
+           }, this);
+           return this;
+         }
+       });
+
+       App.views.CurrentTrackInfo = Backbone.View.extend({
+        el: $('.current-track-info'),
+        template: $('#current-track-info').html(),
+        
+        initialize: function(options) {
+          this.model = options.model;
+          this.playlist = options.playlist;
+          this.listenTo(this.model, 'change', this.render);
+          this.listenTo(this.playlist, 'change add reset remove', this.render);
+        },
+        
+        render: function(){
+          this.$el.html(' ');
+          var info = { album: '-', title: '-', year: '-', duration: 0, picture: [], trackId: -1, };
+          var extend = (this.playlist.models && this.model.get('trackId') >= 0 && this.playlist.models[this.model.get('trackId')]) ? this.playlist.models[this.model.get('trackId')].toJSON() : {};
+          this.$el.html(_.template(this.template, _.extend(info, _.extend(this.model.toJSON(), extend))));
+          return this;
+        },
+       });
+
+       new App.views.TrackList({
+         collection: App.objects.tracks,
+       });
+
+       new App.views.CurrentTrackInfo({
+        model: App.objects.status,
+        playlist: App.objects.tracks,
+       });
+
+       App.objects.tracks.fetch();
+       App.objects.status.fetch();
+
+       setInterval(function(){
+          App.objects.status.fetch();
+       }, 1000);
+
+       App.objects.player = new MediaElementPlayer('#player', {
+        audioWidth: 1000,
+        startVolume: 0.8,
+        features: ['playpause','progress','current','duration','volume'],
+       });
+       
+       //App.objects.player.changeSkin('mejs-ted');
+
+     });
+    </script>
   </body>
 </html>
