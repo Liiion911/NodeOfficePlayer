@@ -7,7 +7,15 @@ var _ = require('underscore');
 
 var app = express();
 
-var music;
+var statusModel = {
+	owner: false,
+	volume: 0.5,
+	//paused: false,
+	trackId: -1,
+	isPlaying: false,
+	time: 0,
+	duration: 0,
+};
 
 var result = []; //metadata array
 
@@ -55,28 +63,11 @@ app.get('/list', function(req, res) {
 });
 
 app.get('/status', function(req, res) {
-
-	var statusModel = {
-		owner: false,
-		volume: 0.5,
-		paused: false,
-		isPlaying: false,
-		trackId: -1,
-		time: 30,
-	};
-
+	var clone = _.clone(statusModel);
 	if (req.connection.remoteAddress == "127.0.0.1" || req.connection.remoteAddress == "localhost") {
-		statusModel.owner = true;
+		clone.owner = true;
 	}
-
-	if (music) {
-		statusModel.isPlaying = true,
-		statusModel.trackId = _.indexOf(result, _.findWhere(result, {
-			file: music.file
-		}));
-		statusModel.time = music.time;
-	}
-	res.json(statusModel)
+	res.json(clone)
 });
 
 /*
@@ -103,6 +94,34 @@ app.get('/picture/:index', function(req, res) {
 	if (index >= 0 && index < result.length && result[req.params.index].picture && result[req.params.index].picture.length > 0 && result[req.params.index].picture[0].data) {
 		res.setHeader('Content-Type', 'image/jpg');
 		res.write(new Buffer(result[req.params.index].picture[0].data.toString('base64'), 'base64'));
+		res.end();
+	} else {
+		res.end();
+	}
+});
+
+app.get('/updateIndex/:index', function(req, res) {
+	var index = parseInt(req.params.index);
+	if (index >= 0 && index < result.length && result[index].file) {
+		statusModel.trackId = index;
+		res.end();
+	} else {
+		res.end();
+	}
+});
+
+app.get('/updateStatus/:status', function(req, res) {
+	var status = req.params.status == "true";
+	statusModel.isPlaying = status;
+	res.end();
+});
+
+app.get('/updateTime/:time/:duration', function(req, res) {
+	var time = parseFloat(req.params.time);
+	var duration = parseFloat(req.params.duration);
+	if (time >= 0 && duration >= 0) {
+		statusModel.time = time;
+		statusModel.duration = duration;
 		res.end();
 	} else {
 		res.end();

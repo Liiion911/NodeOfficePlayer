@@ -9,8 +9,6 @@
     <title>Node TEST Player</title>
     <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet" type="text/css">
     <link href="http://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
-    <link  href="/player/mediaelementplayer.min.css" rel="Stylesheet" />
-    <link  href="/player/mejs-skins.css" rel="Stylesheet" />
     <style type="text/css">
       html, body {
         background-color: white;
@@ -88,12 +86,68 @@
       .player{
         height: 50px;
         padding: 10px;
+        text-align: center;
       }
 
       /* */
       /* HTML 5 AUDIO PLAYER CSS */
       /* */
-     
+      
+     .simple-player-container {
+        display: inline-block;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+        background-color: #ddd;
+        padding: 0 10px 5px 5px;
+      }
+      .simple-player-container > div > ul {
+        margin: 0;
+        padding-left: 0;
+      }
+      .simpleplayer-play-stop-button {
+        display: block;
+        width: 16px;
+        height: 16px;
+        bottom: -5px;
+        position: relative;
+      }
+      .simpleplayer-play-control {
+        background-image: url('/images/play.png');
+      }
+      .simpleplayer-play-control:hover {
+        background-image: url('/images/playing.png');
+      }
+      .simpleplayer-stop-control {
+        background-image: url('/images/stop.png');
+      }
+      .simpleplayer-stop-control:hover {
+        background-image: url('/images/stoped.png');
+      }
+      .start-button{
+        text-decoration: none;
+      }
+      .progressbar-wrapper{
+        display: inline-block;
+        cursor: default;
+        width: 900px;
+      }
+      .progressbar-background{
+        display: block;
+        background-color: #eeeeee;
+        width: 100%; 
+      }
+      .progressbar{
+        display: block;
+        background-color: #22ccff;
+        height: 5px;
+        width: 0%; 
+      }
+      .simpleplayer-control-li{
+        display: inline-block;
+        padding: 0 5px; 
+      }
+      
       /* */
       /* --- */
       /* */
@@ -130,9 +184,24 @@
       <div class="wrapper">
         <h2>Плеер</h2>
         <div class="player">
-          <center>
-            <audio id="player" controls="controls" src="/musics/01.Daisy.mp3" type="audio/mp3"></audio>
-          </center>
+          <div class="simple-player-container">
+            <div>
+              <ul>
+                <li class="simpleplayer-control-li">
+                  <a class="start-button" href="javascript:void(0)">
+                    <span class="simpleplayer-play-stop-button simpleplayer-play-control"></span>
+                  </a>
+                </li>
+                <li class="progressbar-wrapper">
+                  <span class="progressbar-background">
+                    <span class="progressbar">
+                    </span>
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <audio id="player" preload></audio>
         </div>
         <div class="playlist">
           Загрузка плейлиста...
@@ -142,131 +211,18 @@
         </div>
       </div>
     <script src="/js/jquery-2.1.0.min.js"> </script>
-    <script src="/player/mediaelement-and-player.min.js"></script>
     <script src="/js/underscore.min.js"> </script>
     <script src="/js/backbone.min.js"> </script>
+    <script src="/js/player.js"></script>
     <script type="text/javascript"> 
       $(function() {
 
-      window.App = {
-        models: {},
-        collections: {},
-        objects: {},
-        views: {},
-      };
+      App.objects.tracks.fetch();
 
-       App.models.Track = Backbone.Model.extend({
-         defaults: {
-           title: '-',
-           album: '-',
-           year: 0,
-           duration: 0,
-         },
-       });
-
-       App.models.Status = Backbone.Model.extend({
-         url: '/status',
-         defaults: {
-           owner: false,
-           volume: 0.5,
-           paused: false,
-           isPlaying: false,
-           trackId: -1,
-           time: 0,
-         },
-       });
-
-       App.collections.Tracks = Backbone.Collection.extend({
-         model: App.models.Track,
-         url: '/list',
-       });
-
-       App.objects.tracks = new App.collections.Tracks();
-       App.objects.status = new App.models.Status();
-
-       App.views.TrackItem = Backbone.View.extend({
-         tagName: 'div',
-         className: 'track',
-         template: $('#track-item').html(),
-
-         events: {
-           'click .fa-play': 'playTrack'
-         },
-
-         initialize: function() {
-           this.listenTo(this.model, 'change', this.render);
-         },
-
-         playTrack: function() {
-           $.get('/play/' + this.model.collection.indexOf(this.model));
-         },
-
-         render: function() {
-           this.$el.html(_.template(this.template, this.model.toJSON()));
-           return this;
-         },
-       });
-
-       App.views.TrackList = Backbone.View.extend({
-         el: $('.playlist'),
-         initialize: function(options) {
-           this.collection = options.collection;
-           this.listenTo(this.collection, 'change add reset remove', this.render);
-         },
-
-         render: function() {
-           this.$el.html(' ');
-           this.collection.each(function(model) {
-             var view = new App.views.TrackItem({
-               model: model
-             });
-             this.$el.append(view.render().el);
-           }, this);
-           return this;
-         }
-       });
-
-       App.views.CurrentTrackInfo = Backbone.View.extend({
-        el: $('.current-track-info'),
-        template: $('#current-track-info').html(),
-        
-        initialize: function(options) {
-          this.model = options.model;
-          this.playlist = options.playlist;
-          this.listenTo(this.model, 'change', this.render);
-          this.listenTo(this.playlist, 'change add reset remove', this.render);
-        },
-        
-        render: function(){
-          this.$el.html(' ');
-          var info = { album: '-', title: '-', year: '-', duration: 0, picture: [], trackId: -1, };
-          var extend = (this.playlist.models && this.model.get('trackId') >= 0 && this.playlist.models[this.model.get('trackId')]) ? this.playlist.models[this.model.get('trackId')].toJSON() : {};
-          this.$el.html(_.template(this.template, _.extend(info, _.extend(this.model.toJSON(), extend))));
-          return this;
-        },
-       });
-
-       new App.views.TrackList({
-         collection: App.objects.tracks,
-       });
-
-       new App.views.CurrentTrackInfo({
-        model: App.objects.status,
-        playlist: App.objects.tracks,
-       });
-
-       App.objects.tracks.fetch();
-       App.objects.status.fetch();
-
-       setInterval(function(){
-          App.objects.status.fetch();
-       }, 1000);
-
-       App.objects.player = new MediaElementPlayer('#player', {
-        audioWidth: 1000,
-        startVolume: 0.8,
-        features: ['playpause','progress','current','duration','volume'],
-       });
+       
+       //App.objects.player.sp.src = '/musics/01.Daisy.mp3';
+       //App.objects.player.sp.src = '';
+       
        
        //App.objects.player.changeSkin('mejs-ted');
 
