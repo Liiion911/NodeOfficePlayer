@@ -40,10 +40,10 @@
       }
       
       .track{
-        height: 22px;
         line-height: 24px;
         padding-left: 10px;
         border-bottom: 1px solid #BBB;
+		display: block;
       }
 
       .track:last-child{
@@ -51,7 +51,11 @@
       }
       
       .track .fa{
-        cursor: pointer;
+		cursor: pointer;
+		font-size: 10px;
+		border: 3px dashed gray;
+		padding: 4px;
+		margin: 8px;
       }
       
       .track.playing{
@@ -147,16 +151,45 @@
         display: inline-block;
         padding: 0 5px; 
       }
-      
+
+	  
       /* */
-      /* --- */
+		.volume-bar-container{
+			display: inline-block;
+		}
+	  
+		#volumController {
+			height: 35px;
+			width: 45px;
+		}
+		
+		#volumController div{
+			height: 40px;
+		}
+		
+		.volumeControllerBar{
+			border-left: 1px solid #222;
+			float: left;
+			width: 3px;
+			-webkit-border-top-left-radius: 3px;
+			-moz-border-radius-topleft: 3px;
+			border-top-left-radius: 3px;
+			background-color: #4c4c4c;
+			cursor: pointer;
+		}
+		
+		.volumeControllerBar:hover{
+			background-color: #bcbcbc !important;
+		}
+		
+		
       /* */
       
       
     </style>
     
     <script id="track-item" type="text/template">
-      <i class="fa fa-play"></i> 
+      <i class="fa fa-play track-state"></i> 
       <b><%= title %></b> - 
       <span><%= album %></span> - 
       <span><%= year %></span> - 
@@ -198,6 +231,10 @@
                     </span>
                   </span>
                 </li>
+				<li class="volume-bar-container">
+					<div id="volumController">
+					</div>
+				</li>			
               </ul>
             </div>
           </div>
@@ -215,18 +252,9 @@
     <script src="/js/backbone.min.js"> </script>
     <script src="/js/player.js"></script>
     <script type="text/javascript"> 
-      $(function() {
-
-      App.objects.tracks.fetch();
-
-       
-       //App.objects.player.sp.src = '/musics/01.Daisy.mp3';
-       //App.objects.player.sp.src = '';
-       
-       
-       //App.objects.player.changeSkin('mejs-ted');
-
-     });
+		$(function() {
+			App.objects.tracks.fetch();	
+		});
     </script>
   </body>
 </html>

@@ -110,6 +110,16 @@ app.get('/updateIndex/:index', function(req, res) {
 	}
 });
 
+app.get('/updateVolume/:volume', function(req, res) {
+	var volume = parseFloat(req.params.volume);
+	if (volume >= 0 && volume <= 1) {
+		statusModel.volume = volume;
+		res.end();
+	} else {
+		res.end();
+	}
+});
+
 app.get('/updateStatus/:status', function(req, res) {
 	var status = req.params.status == "true";
 	statusModel.isPlaying = status;
