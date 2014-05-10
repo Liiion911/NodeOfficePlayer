@@ -25,6 +25,8 @@
         background-color: #D2D1D0;
         border-left: 1px solid #BBB;
         border-right: 1px solid #BBB;
+		display: inline-table;
+		padding-top: 25px;
       }
       
       h1, h2, h3, h4, h5{
@@ -62,14 +64,24 @@
         background-color: #BBB;
       }
        
-      .current-track-info{
-        width: 280px;
-        min-height: 200px;
+      .current-track-info-panel{
+        width: 250px;
         float: left;
+		padding: 15px;
+      }
+
+	  .current-track-info{
+        width: 100%;
+        min-height: 200px;
+		margin-bottom: 25px;
       }
       
-      .current-track-info{
-        padding: 10px;
+      .file-uploader{
+		padding: 10px;
+		border: 3px dashed #BBB;
+		border-radius: 5px;
+		width: 100%;
+		min-height: 200px;
       }
       
       .album-icon{
@@ -92,7 +104,36 @@
         padding: 10px;
         text-align: center;
       }
-
+	  
+	  .track-text-field{
+		width: 150px;
+		display: inline-block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		word-break: break-all;
+		white-space: nowrap;
+		top: 8px;
+		position: relative;
+		padding: 0 5px;
+	  }
+	  
+	  .track-text-field.title{
+		width: 240px;
+	  }
+	  
+	  .track-text-field.album{
+		width: 230px;
+	  }
+	  
+	  .track-text-field.year{
+		width: 60px;
+	  }
+	  
+	  .track-text-field.duration{
+		width: 30px;
+	  }
+	  
+	  
       /* */
       /* HTML 5 AUDIO PLAYER CSS */
       /* */
@@ -113,7 +154,7 @@
         display: block;
         width: 16px;
         height: 16px;
-        bottom: -5px;
+        bottom: 3px;
         position: relative;
       }
       .simpleplayer-play-control {
@@ -133,8 +174,8 @@
       }
       .progressbar-wrapper{
         display: inline-block;
-        cursor: default;
-        width: 900px;
+        cursor: pointer; /*default;*/
+        width: 800px;
       }
       .progressbar-background{
         display: block;
@@ -144,7 +185,7 @@
       .progressbar{
         display: block;
         background-color: #22ccff;
-        height: 5px;
+        height: 20px;
         width: 0%; 
       }
       .simpleplayer-control-li{
@@ -159,8 +200,8 @@
 		}
 	  
 		#volumController {
-			height: 35px;
-			width: 45px;
+			height: 40px;
+			width: 115px;
 		}
 		
 		#volumController div{
@@ -168,14 +209,16 @@
 		}
 		
 		.volumeControllerBar{
-			border-left: 1px solid #222;
+			border: 1px solid #222;
+			border-right: 0px;
 			float: left;
-			width: 3px;
-			-webkit-border-top-left-radius: 3px;
-			-moz-border-radius-topleft: 3px;
-			border-top-left-radius: 3px;
-			background-color: #4c4c4c;
+			width: 10px;
+			background-color: #898989;
 			cursor: pointer;
+		}
+		
+		.volumeControllerBar:last-child{
+			border-right: 1px solid #222;
 		}
 		
 		.volumeControllerBar:hover{
@@ -190,10 +233,10 @@
     
     <script id="track-item" type="text/template">
       <i class="fa fa-play track-state"></i> 
-      <b><%= title %></b> - 
-      <span><%= album %></span> - 
-      <span><%= year %></span> - 
-      <span><%= duration %></span>
+      <b class="track-text-field title"><%= title %></b>
+      <span class="track-text-field album"><%= album %></span>
+      <span class="track-text-field year"><%= year %></span>
+      <span class="track-text-field duration"><%= duration %></span>
     </script>
     
     <script id="current-track-info" type="text/template">
@@ -243,17 +286,29 @@
         <div class="playlist">
           Загрузка плейлиста...
         </div>
-        <div class="current-track-info">
-          
+        <div class="current-track-info-panel">
+			<div class="current-track-info">
+			
+			</div>
+			<div class="file-uploader">
+			
+			</div>
         </div>
       </div>
     <script src="/js/jquery-2.1.0.min.js"> </script>
     <script src="/js/underscore.min.js"> </script>
     <script src="/js/backbone.min.js"> </script>
+	<script src="/siofu/client.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
     <script src="/js/player.js"></script>
     <script type="text/javascript"> 
 		$(function() {
-			App.objects.tracks.fetch();	
+			//App.objects.tracks.fetch();	
+			
+			App.objects.siofu = new SocketIOFileUpload(App.objects.socket);
+			App.objects.siofu.listenOnDrop($('.file-uploader')[0]);
+			$(document).on('drop', '.file-uploader', App.objects.siofu.prompt);
+
 		});
     </script>
   </body>
